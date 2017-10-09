@@ -8,6 +8,7 @@ import (
   "os"
 	"regexp"
 	"math/rand"
+	"sync"
 )
 
 func main() {
@@ -36,7 +37,7 @@ func main() {
 		fmt.Println("Copy problem")
 	}
 	holder := make([]byte, 1)
-	for i := 0; i < 11; i++ {
+	for i := 0; i < 10; i++ {
 
 		fileContentVariable := fileContent[0:(lenFileContent - (16 * i))]
 		err := ioutil.WriteFile("ciphertext.txt", fileContentVariable, 0644)
@@ -50,7 +51,7 @@ func main() {
 			if plaintextLength == 0 {
 				fmt.Println("Copy problem")
 			}
-			//fmt.Println("Returned plaintext is", plaintext)
+
 
 			for j := 0; j < 16; j++ {
 				holder = append(holder, plaintext[j])
@@ -105,6 +106,7 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 	intermediateStateByteArray := make([]byte,aesBlocksize)
 	fileContent, err_data_file := ioutil.ReadFile(ciphertextFilename)
 
+	var mutex = &sync.Mutex{}
 	residue := 0
 	intermediateStateByte := byte(0)
   /* Error handling if file wasn't opened successfully */
@@ -151,6 +153,7 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 		    fmt.Println("Invalid file name, doesn't exist")
 		  }
 
+				mutex.Lock()
 				for k := 0; k < 255; k++ {
 
 					fileContent[lenFileContent - 16 - i] = byte(k)
@@ -161,9 +164,12 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 				    fmt.Println("Invalid file name, doesn't exist")
 				  }
 
+					//mutex.Lock()
 					testForPadOutput := testForPad()
 					testForPadOutputString := string(testForPadOutput)
 					testForPadOutputString = re.ReplaceAllString(testForPadOutputString, "")
+					//mutex.Unlock()
+					//time.Sleep(time.Millisecond)
 
 					if testForPadOutputString != "INVALID PADDING" {
 						intermediateStateByte = byte(k)
@@ -181,6 +187,7 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 						}
 
 				}
+				mutex.Unlock()
 
 				fileContent, err_data_file = ioutil.ReadFile(ciphertextFilename)
 				if (err_data_file != nil) {
