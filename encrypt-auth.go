@@ -269,6 +269,7 @@ func decryptionAesCBC(ivCiphertextConcatenated []byte, hexAesKeyBytes []byte,  h
     }
 
     if (paddingBool) {
+    fmt.Println("Plaintext is ", plaintext)
     plaintext = plaintext[:((multipleVal * aesBlocksize) - (int)(paddingByte))]
 
 
