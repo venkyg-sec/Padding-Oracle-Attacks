@@ -21,6 +21,7 @@ func main() {
   ciphertextFilename := os.Args[2]
 	aesBlocksize := 16
 	fileContent, err_data_file := ioutil.ReadFile(ciphertextFilename)
+
 	/* Error handling if file wasn't opened successfully */
 	if (err_data_file != nil) {
 		fmt.Println("Invalid file name, doesn't exist")
@@ -37,10 +38,10 @@ func main() {
 		fmt.Println("Copy problem")
 	}
 	holder := make([]byte, 1)
-	for i := 0; i < 10; i++ {
+	for i := 0; i < (numberOfBlocks - 3); i++ {
 
 		fileContentVariable := fileContent[0:(lenFileContent - (16 * i))]
-		err := ioutil.WriteFile("ciphertext.txt", fileContentVariable, 0644)
+		err := ioutil.WriteFile(ciphertextFilename, fileContentVariable, 0644)
 		if (err != nil) {
 			fmt.Println("Invalid file name, doesn't exist")
 			}
@@ -76,9 +77,19 @@ func main() {
 
 		finalPlaintextBlock = finalPlaintextBlock[1:len(finalPlaintextBlock)]
 
-		fmt.Println("Final plaintext is ", finalPlaintextBlock)
+		paddingByte := finalPlaintextBlock[len(finalPlaintextBlock) - 1]
+		paddingByteInteger := int(paddingByte)
 
-		err := ioutil.WriteFile("ciphertext.txt", fileContentCopyComplete, 0644)
+		finalPlaintextBlock = finalPlaintextBlock[0: ((len(finalPlaintextBlock)) - paddingByteInteger)]
+
+		// Removing MAC from Plaintext now
+
+		finalPlaintextBlock = finalPlaintextBlock[0:((len(finalPlaintextBlock)) - 32)]
+
+
+		fmt.Println("Final plaintext is ", string(finalPlaintextBlock))
+
+		err := ioutil.WriteFile(ciphertextFilename, fileContentCopyComplete, 0644)
 		if (err != nil) {
 			fmt.Println("Invalid file name, doesn't exist")
 			}
@@ -87,9 +98,11 @@ func main() {
 }
 
 
-func testForPad() ([]byte) {
+func testForPad(ciphertextFilename string) ([]byte) {
 
-	cmd := exec.Command("./encrypt-auth", "decrypt" ,"-k", "364c7394759b039b9a93849abc938e9e3248932832498acb34cbaef324385bc3","-i","ciphertext.txt","-o","recoveredplaintext.txt")
+//	cmd := exec.Command("./encrypt-auth", "decrypt" ,"-k", "364c7394759b039b9a93849abc938e9e3248932832498acb34cbaef324385bc3","-i","ciphertext.txt","-o","recoveredplaintext.txt")
+
+	cmd := exec.Command("./decrypt-test","-i",ciphertextFilename)
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Fatal(err)
@@ -148,7 +161,7 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 					fileContent[lenFileContent - 16 -f] = intermediateStateByteArray[16 - f] ^ byte(i)
 				}
 
-			err := ioutil.WriteFile("ciphertext.txt", fileContent, 0644)
+			err := ioutil.WriteFile(ciphertextFilename, fileContent, 0644)
 			if (err != nil) {
 		    fmt.Println("Invalid file name, doesn't exist")
 		  }
@@ -159,13 +172,13 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 					fileContent[lenFileContent - 16 - i] = byte(k)
 					re := regexp.MustCompile(`\r?\n`)
 
-					err := ioutil.WriteFile("ciphertext.txt", fileContent, 0644)
+					err := ioutil.WriteFile(ciphertextFilename, fileContent, 0644)
 					if (err != nil) {
 				    fmt.Println("Invalid file name, doesn't exist")
 				  }
 
 					//mutex.Lock()
-					testForPadOutput := testForPad()
+					testForPadOutput := testForPad(ciphertextFilename)
 					testForPadOutputString := string(testForPadOutput)
 					testForPadOutputString = re.ReplaceAllString(testForPadOutputString, "")
 					//mutex.Unlock()
@@ -182,7 +195,7 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 							//fmt.Println(" File content being written is ",fileContent[lenFileContent - 32 + c], " and in second last block we have", secondLastBlockBytes[c] )
 						}
 
-						err = ioutil.WriteFile("ciphertext.txt", fileContent, 0644)
+						err = ioutil.WriteFile(ciphertextFilename, fileContent, 0644)
 						break
 						}
 
@@ -198,7 +211,7 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 			//	fmt.Println(" PLaintext text writtent at ", 16 - i, " position is ", plaintextBookKeeping[ 16 - i])
 
 				// Writing back original contents to file before next operation
-				err = ioutil.WriteFile("ciphertext.txt", fileContentCopy, 0644)
+				err = ioutil.WriteFile(ciphertextFilename, fileContentCopy, 0644)
 	}
 		//fmt.Println("Decrypted plaintext in last block is", (plaintextBookKeeping))
 		return plaintextBookKeeping
