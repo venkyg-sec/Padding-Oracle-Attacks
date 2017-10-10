@@ -20,8 +20,14 @@ func main() {
 
   ciphertextFilename := os.Args[2]
 	aesBlocksize := 16
-	fileContent, err_data_file := ioutil.ReadFile(ciphertextFilename)
+	file, err_data_file := ioutil.ReadFile(ciphertextFilename)
 
+	fileVariable := make([]byte, 48)
+	fileContent := []byte{}
+
+	fileContent = append(fileVariable,file...)
+
+	err_data_file = ioutil.WriteFile(ciphertextFilename,fileContent,0644)
 	/* Error handling if file wasn't opened successfully */
 	if (err_data_file != nil) {
 		fmt.Println("Invalid file name, doesn't exist")
@@ -38,7 +44,7 @@ func main() {
 		fmt.Println("Copy problem")
 	}
 	holder := make([]byte, 1)
-	for i := 0; i < (numberOfBlocks - 3); i++ {
+	for i := 0; i < (numberOfBlocks - 4); i++ {
 
 		fileContentVariable := fileContent[0:(lenFileContent - (16 * i))]
 		err := ioutil.WriteFile(ciphertextFilename, fileContentVariable, 0644)
@@ -100,13 +106,14 @@ func main() {
 
 func testForPad(ciphertextFilename string) ([]byte) {
 
-//	cmd := exec.Command("./encrypt-auth", "decrypt" ,"-k", "364c7394759b039b9a93849abc938e9e3248932832498acb34cbaef324385bc3","-i","ciphertext.txt","-o","recoveredplaintext.txt")
+	//cmd := exec.Command("./encrypt-auth", "decrypt" ,"-k", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","-i",ciphertextFilename,"-o","recoveredplaintext.txt")
 
 	cmd := exec.Command("./decrypt-test","-i",ciphertextFilename)
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return stdoutStderr
 
 }
