@@ -95,6 +95,7 @@ func main() {
 
 		fmt.Println("Final plaintext is ", string(finalPlaintextBlock))
 
+		fileContentCopyComplete = fileContentCopyComplete[48:(len(fileContentCopyComplete))]
 		err := ioutil.WriteFile(ciphertextFilename, fileContentCopyComplete, 0644)
 		if (err != nil) {
 			fmt.Println("Invalid file name, doesn't exist")
@@ -174,7 +175,7 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 		  }
 
 				mutex.Lock()
-				for k := 0; k < 255; k++ {
+				for k := 1; k < 255; k++ {
 
 					fileContent[lenFileContent - 16 - i] = byte(k)
 					re := regexp.MustCompile(`\r?\n`)
@@ -218,6 +219,7 @@ func testForVariyingCiphertext(ciphertextFilename string) ([]byte) {
 			//	fmt.Println(" PLaintext text writtent at ", 16 - i, " position is ", plaintextBookKeeping[ 16 - i])
 
 				// Writing back original contents to file before next operation
+
 				err = ioutil.WriteFile(ciphertextFilename, fileContentCopy, 0644)
 	}
 		//fmt.Println("Decrypted plaintext in last block is", (plaintextBookKeeping))
